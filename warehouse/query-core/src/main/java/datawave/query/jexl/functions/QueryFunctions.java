@@ -3,12 +3,15 @@ package datawave.query.jexl.functions;
 import datawave.data.type.util.NumericalEncoder;
 import datawave.query.attributes.ValueTuple;
 
+import datawave.query.collections.FunctionalSet;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.log4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 /**
  * NOTE: The JexlFunctionArgumentDescriptorFactory is implemented by QueryFunctionsDescriptor. This is kept as a separate class to reduce accumulo dependencies
@@ -26,6 +29,7 @@ public class QueryFunctions {
     public static final String UNIQUE_BY_MINUTE_FUNCTION = "unique_by_minute";
     public static final String GROUPBY_FUNCTION = "groupby";
     public static final String EXCERPT_FIELDS_FUNCTION = "excerpt_fields";
+    public static final String INCLUDE_TEXT = "includeText";
     
     protected static Logger log = Logger.getLogger(QueryFunctions.class);
     
@@ -170,4 +174,43 @@ public class QueryFunctions {
         return between(values, (float) left, leftInclusive, (float) right, rightInclusive);
     }
     
+    /**
+     * Returns a set that contains the hit term if the non-normalized value of the field value matches the given string.
+     *
+     * @param fieldValue
+     *            the field value to evaluate
+     * @param valueToMatch
+     *            the string to match
+     * @return a {@link FunctionalSet} with the matching hit term, or an empty set if no matches were found
+     */
+    public static FunctionalSet<ValueTuple> includeText(Object fieldValue, String valueToMatch) {
+        if (fieldValue != null && ValueTuple.getStringValue(fieldValue).equals(valueToMatch)) {
+            return FunctionalSet.singleton(ValueTuple.toValueTuple(fieldValue));
+        }
+        return FunctionalSet.emptySet();
+    }
+    
+    /**
+     * Returns a set that contains the hit term for the first field value where the non-normalized value matches the given string.
+     *
+     * @param values
+     *            the values to evaluate
+     * @param valueToMatch
+     *            the string to match
+     * @return a {@link FunctionalSet} with the matching hit term, or an empty set if no matches were found
+     */
+    public static FunctionalSet<ValueTuple> includeText(Iterable<?> values, String valueToMatch) {
+        if (values != null) {
+            // @formatter:off
+            return StreamSupport.stream(values.spliterator(), false)
+                            .filter(Objects::nonNull)
+                            .filter((value) -> ValueTuple.getStringValue(value).equals(valueToMatch))
+                            .findFirst()
+                            .map(ValueTuple::toValueTuple)
+                            .map(FunctionalSet::singleton)
+                            .orElseGet(FunctionalSet::emptySet);
+            // @formatter:on
+        }
+        return FunctionalSet.emptySet();
+    }
 }
