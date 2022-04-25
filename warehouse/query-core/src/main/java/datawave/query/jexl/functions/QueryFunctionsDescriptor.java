@@ -56,8 +56,8 @@ public class QueryFunctionsDescriptor implements JexlFunctionArgumentDescriptorF
                     return BoundedRange.create(JexlNodeFactory.createAndNode(Arrays.asList(geNode, leNode)));
                 case LENGTH:
                     // Create a regex node with the appropriate number of matching characters.
-                    return JexlNodeFactory.buildNode(new ASTERNode(ParserTreeConstants.JJTERNODE), args.get(0),
-                                    ".{" + args.get(1).image + ',' + args.get(2).image + '}');
+                    return JexlNodeFactory.buildNode(new ASTERNode(ParserTreeConstants.JJTERNODE), args.get(0), ".{" + args.get(1).image + ','
+                                    + args.get(2).image + '}');
                 case INCLUDE_TEXT:
                     // Return the appropriate index query.
                     return getTextIndexQuery();
@@ -66,7 +66,7 @@ public class QueryFunctionsDescriptor implements JexlFunctionArgumentDescriptorF
                     return TRUE_NODE;
             }
         }
-    
+        
         private JexlNode getTextIndexQuery() {
             JexlNode node0 = args.get(0);
             final String value = args.get(1).image;
